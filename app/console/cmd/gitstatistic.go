@@ -13,12 +13,14 @@ import (
 )
 
 func init() {
-	appendCommand(&cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "git:statistic",
-		Short: "git 提交记录统计",
+		Short: "git 提交记录统计 git:statistic --path=./",
 		Run:   runGitstatistic,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
-	})
+	}
+	cmd.Flags().String("path", "./", "work path")
+	appendCommand(cmd)
 }
 
 const (
@@ -26,8 +28,8 @@ const (
 	lastYear   = 1     // 统计过去一年的数据
 )
 
-func runGitstatistic(_ *cobra.Command, _ []string) {
-	root := `config.GetString("WORKSPACE_PATH")` // 指定根目录
+func runGitstatistic(cmd *cobra.Command, _ []string) {
+	root, _ := cmd.Flags().GetString("path") // 指定根目录
 	// 遍历指定目录下的所有 Git 项目
 	err := filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
