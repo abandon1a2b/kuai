@@ -2,7 +2,7 @@ package console
 
 import (
 	"github.com/spf13/cobra"
-	"kuai/app/console/cmd"
+	"kuai/console/cmd"
 )
 
 // rootCmd represents the base command when called without any subcommands

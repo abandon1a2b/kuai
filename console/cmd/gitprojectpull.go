@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
+	"kuai/util"
 	"os"
 	"os/exec"
 	"path/filepath"
-
-	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -22,6 +22,7 @@ func init() {
 
 func runAllprojectpull(cmd *cobra.Command, _ []string) {
 	root, _ := cmd.Flags().GetString("path") // 指定根目录
+	root, _ = util.AbsPath(root)
 	// 定义一个匿名函数，用于处理每个目录
 	var visitDirFunc = func(path string, f os.FileInfo, err error) error {
 		if err != nil {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"kuai/app/console"
+	"kuai/console"
 )
 
 func main() {

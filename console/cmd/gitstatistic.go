@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"kuai/util"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,6 +31,7 @@ const (
 
 func runGitstatistic(cmd *cobra.Command, _ []string) {
 	root, _ := cmd.Flags().GetString("path") // 指定根目录
+	root, _ = util.AbsPath(root)
 	// 遍历指定目录下的所有 Git 项目
 	err := filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
 		if err != nil {

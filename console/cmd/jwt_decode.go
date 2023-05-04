@@ -15,12 +15,13 @@ func init() {
 	appendCommand(&cobra.Command{
 		Use:   "tool:jwtDecode",
 		Short: "jwt 解析",
+		Long:  "kuai jwtDecode",
 		Run:   runJwtDecode,
 		Args:  cobra.ExactArgs(0), // 只允许且必须传 1 个参数
 	})
 }
 
-// cat  ~/Desktop/debug3.html   | grep Bearer   | awk -F 'Bearer ' '{print $2}' | awk -F '"' '{print $1}' | thh jwtDecode
+// cat  ~/Desktop/debug3.html   | grep Bearer   | awk -F 'Bearer ' '{print $2}' | awk -F '"' '{print $1}' | kuai jwtDecode
 func runJwtDecode(_ *cobra.Command, _ []string) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
