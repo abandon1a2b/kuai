@@ -34,7 +34,7 @@ func mapToYesterday(now time.Time) time.Time {
 	yesterday := now.Add(-24 * time.Hour)
 
 	// 计算昨天的开始时间和结束时间
-	startYesterday := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 17, 31, 32, 0, yesterday.Location())
+	startYesterday := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 19, 31, 32, 0, yesterday.Location())
 	endYesterday := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 23, 44, 33, 0, yesterday.Location())
 
 	// 计算映射时间在当天的位置
