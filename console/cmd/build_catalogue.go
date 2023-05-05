@@ -3,7 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/leancodebox/goose/fileopt"
+	"kuai/util"
 	"log"
 	"os"
 	"strings"
@@ -12,23 +12,23 @@ import (
 )
 
 func init() {
-	appendCommand(&cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "tool:build_catalogue",
 		Short: "生成文件目录",
 		Run:   runBuildCatalogue,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
-	})
+	}
+	cmd.Flags().String("path", "./", "dir path")
+	appendCommand(cmd)
 }
 
-func runBuildCatalogue(_ *cobra.Command, _ []string) {
-	path := `config.GetString("BUILD_MD_LIST")`
+func runBuildCatalogue(cmd *cobra.Command, args []string) {
+	path, _ := cmd.Flags().GetString("path") // 指定根目录
+	path, _ = util.AbsPath(path)
 
 	list := ScanPathBuildList(path)
 	bgd(list, ".", 0)
-	err := fileopt.FilePutContents(path+"/"+"readme.new.md", listBuffer.String())
-	if err != nil {
-		fmt.Println(err)
-	}
+	fmt.Println(listBuffer.String())
 }
 
 var listBuffer = bytes.Buffer{}
