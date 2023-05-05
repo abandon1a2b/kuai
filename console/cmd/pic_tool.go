@@ -5,6 +5,7 @@ import (
 	"github.com/leancodebox/goose/fileopt"
 	"image"
 	"image/color"
+	"kuai/util"
 	"math/rand"
 	"time"
 
@@ -14,49 +15,43 @@ import (
 )
 
 func init() {
-	appendCommand(&cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "tool:pic",
 		Short: "小图片生成",
 		Run:   runPicTool,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
-	})
+	}
+	cmd.Flags().Int("h", 512, "height -h=512")
+	cmd.Flags().Int("w", 256, "width -w=512")
+	cmd.Flags().String("o", "./storage/pic/", "output -o=./storage/pic")
+	appendCommand(cmd)
 }
 
-func runPicTool3() {
-	const S = 512
-	dc := gg.NewContext(S, S)
-	dc.SetRGBA(0, 0, 0, 0.1)
-	for i := 0; i < 360; i += 15 {
-		dc.Push()
-		dc.RotateAbout(gg.Radians(float64(i)), S/2, S/2)
-		dc.DrawEllipse(S/2, S/2, S*7/16, S/8)
-		dc.Fill()
-		dc.Pop()
-	}
-	dc.SavePNG("out.png")
-}
+func runPicTool(cmd *cobra.Command, _ []string) {
 
-func runPicTool(_ *cobra.Command, _ []string) {
-	runPicTool3()
-	fileopt.DirExistOrCreate("storage/pic/")
-	const S = 512
-	const S2 = 256
-	dc := gg.NewContext(S, S)
-	maxT := 3
+	h, _ := cmd.Flags().GetInt("h")
+	w, _ := cmd.Flags().GetInt("w")
+	o, _ := cmd.Flags().GetString("o")
 
-	for i := 1; i <= maxT-1; i++ {
-		dc.DrawCircle(float64(S/maxT*i), float64(S/maxT*i), float64(S/maxT))
-		dc.SetColor(randColor())
-		dc.Fill()
+	var S = h
+	var S2 = w
+	var maxT = 3
+
+	outputRoot, _ := util.AbsPath(o)
+	outputRoot = ensurePathHasTrailingSlash(outputRoot)
+	fileopt.DirExistOrCreate(outputRoot)
+
+	dc := createBackground(S, maxT)
+	err := dc.SavePNG(outputRoot + "/background.png")
+	if err != nil {
+		fmt.Println(err)
 	}
 
-	fmt.Println(dc.SavePNG("storage/pic/background.png"))
-	dc = gg.NewContext(S2, S2)
-	dc.DrawCircle(S2/2, S2/2, S2/2)
-	dc.SetRGB(255, 255, 255)
-	dc.SetColor(color.White)
-	dc.Fill()
-	fmt.Println(dc.SavePNG("storage/pic/water.png"))
+	dc = createWatermark(S2)
+	err = dc.SavePNG(outputRoot + "/water.png")
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	origin, _ := gg.LoadImage("storage/pic/background.png")
 	water, _ := gg.LoadImage("storage/pic/water.png")
@@ -69,21 +64,55 @@ func runPicTool(_ *cobra.Command, _ []string) {
 		(y)/2,
 	)
 
-	outputRoot := "./storage/pic_output"
 	for i := 1; i <= 100; i++ {
 		dc = gg.NewContext(x, y)
 		dc.DrawImage(origin, 0, 0)
 		dc.DrawImage(water, waterPosition.X-32, waterPosition.Y-32)
 		dc.SetColor(randColor())
-		//dc.DrawString(cast.ToString(cast.ToString(time.Now().Format("2006_01_02_15_04_05"))+cast.ToString(i)),
-		//	cast.ToFloat64(waterPosition.X-32),
-		//	cast.ToFloat64(waterPosition.Y+64))
-		dc.SetColor(randColor())
 		dc.DrawCircle(float64(S/maxT), float64(S/maxT), float64(S/maxT))
 		dc.Fill()
-		fmt.Println(dc.SavePNG(outputRoot + "out" + cast.ToString(time.Now().Format("2006_01_02_15_04_05")) + cast.ToString(i) + ".png"))
-		fmt.Println("完成")
+
+		filename := "out" + cast.ToString(time.Now().Format("2006_01_02_15_04_05")) + cast.ToString(i) + ".png"
+		filePath := outputRoot + filename
+		err = dc.SavePNG(filePath)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println("success :", filePath)
+		}
 	}
+}
+
+func ensurePathHasTrailingSlash(path string) string {
+	if path[len(path)-1:] != "/" {
+		path += "/"
+	}
+	return path
+}
+
+// 创建背景图
+func createBackground(size, maxT int) *gg.Context {
+	dc := gg.NewContext(size, size)
+
+	for i := 1; i <= maxT-1; i++ {
+		dc.DrawCircle(float64(size/maxT*i), float64(size/maxT*i), float64(size/maxT))
+		dc.SetColor(randColor())
+		dc.Fill()
+	}
+
+	return dc
+}
+
+// 创建水印图
+func createWatermark(size int) *gg.Context {
+	dc := gg.NewContext(size, size)
+
+	dc.DrawCircle(float64(size/2), float64(size/2), float64(size/2))
+	dc.SetRGB(255, 255, 255)
+	dc.SetColor(color.White)
+	dc.Fill()
+
+	return dc
 }
 
 func randColor() *color.NRGBA {
