@@ -12,27 +12,18 @@ import (
 )
 
 func init() {
-	appendCommand(&cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "tcp_scan",
 		Short: "",
 		Run:   runTcpScan,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
-	})
-	tcoScanCommand := &cobra.Command{
-		Use:   "tcp_scan2",
-		Short: "tcp_scan2 --ip1=10.249.1.1 --ip2=10.249.255.255 --port=22,80",
-		Run:   runTcpScan2,
-		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}
-	tcoScanCommand.Flags().String("ip1", "127.0.0.1", "IP address 1")
-	tcoScanCommand.Flags().String("ip2", "127.0.0.1", "IP address 2")
-	tcoScanCommand.Flags().String("port", "22,80", "port number 22,80")
-	appendCommand(tcoScanCommand)
+	cmd.Flags().String("ip", "127.0.0.1", "IP address")
+	appendCommand(cmd)
 }
-
-func runTcpScan(_ *cobra.Command, _ []string) {
-	target := "127.0.0.1" // 目标主机地址
-	timeout := 5          // 超时时间（秒）
+func runTcpScan(cmd *cobra.Command, _ []string) {
+	target, _ := cmd.Flags().GetString("ip1") // 目标主机地址
+	timeout := 5                              // 超时时间（秒）
 	for port := 1; port <= 65535; port++ {
 		addr := fmt.Sprintf("%s:%d", target, port)
 		conn, err := net.DialTimeout("tcp", addr, time.Duration(timeout)*time.Second)
@@ -43,14 +34,23 @@ func runTcpScan(_ *cobra.Command, _ []string) {
 	}
 }
 
-func runTcpScan2(cmd *cobra.Command, _ []string) {
+func init() {
+	cmd := &cobra.Command{
+		Use:   "tcp_scan_list",
+		Short: "tcp_scan_list --ip1=10.249.1.1 --ip2=10.249.255.255 --port=22,80",
+		Run:   runTcpScan2,
+		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
+	}
 	cmd.Flags().String("ip1", "127.0.0.1", "IP address 1")
+	cmd.Flags().String("ip2", "127.0.0.1", "IP address 2")
+	cmd.Flags().String("port", "22,80", "port number 22,80")
+	appendCommand(cmd)
+}
 
+func runTcpScan2(cmd *cobra.Command, _ []string) {
 	start := time.Now()
-	startIP := "10.0.0.0"
-	endIP := "10.255.255.255"
-	startIP, _ = cmd.Flags().GetString("ip1")
-	endIP, _ = cmd.Flags().GetString("ip2")
+	startIP, _ := cmd.Flags().GetString("ip1")
+	endIP, _ := cmd.Flags().GetString("ip2")
 	portListStr, _ := cmd.Flags().GetString("port")
 
 	//startIP = "10.249.1.1"
