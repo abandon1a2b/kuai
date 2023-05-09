@@ -41,22 +41,15 @@ func runPicTool(cmd *cobra.Command, _ []string) {
 	outputRoot = ensurePathHasTrailingSlash(outputRoot)
 	fileopt.DirExistOrCreate(outputRoot)
 
-	dc := createBackground(S, maxT)
-	err := dc.SavePNG(outputRoot + "/background.png")
+	dc := createWatermark(S2)
+	err := dc.SavePNG(outputRoot + "/water.png")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	dc = createWatermark(S2)
-	err = dc.SavePNG(outputRoot + "/water.png")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	origin, _ := gg.LoadImage("storage/pic/background.png")
 	water, _ := gg.LoadImage("storage/pic/water.png")
-	x := origin.Bounds().Dx() // 图片长(px)
-	y := origin.Bounds().Dy() // 图片宽(px)
+	x := h // 图片长(px)
+	y := h // 图片宽(px)
 
 	// 水印位置：以原图长宽 - 去水印图 - 偏移像素
 	waterPosition := image.Pt(
@@ -66,10 +59,12 @@ func runPicTool(cmd *cobra.Command, _ []string) {
 
 	for i := 1; i <= 100; i++ {
 		dc = gg.NewContext(x, y)
-		dc.DrawImage(origin, 0, 0)
 		dc.DrawImage(water, waterPosition.X-32, waterPosition.Y-32)
 		dc.SetColor(randColor())
 		dc.DrawCircle(float64(S/maxT), float64(S/maxT), float64(S/maxT))
+		dc.Fill()
+		dc.SetColor(randColor())
+		dc.DrawString(time.Now().Format("2006_01_02_15_04_05")+cast.ToString(i), float64(S/maxT), float64(S/maxT))
 		dc.Fill()
 
 		filename := "out" + cast.ToString(time.Now().Format("2006_01_02_15_04_05")) + cast.ToString(i) + ".png"
@@ -90,26 +85,13 @@ func ensurePathHasTrailingSlash(path string) string {
 	return path
 }
 
-// 创建背景图
-func createBackground(size, maxT int) *gg.Context {
-	dc := gg.NewContext(size, size)
-
-	for i := 1; i <= maxT-1; i++ {
-		dc.DrawCircle(float64(size/maxT*i), float64(size/maxT*i), float64(size/maxT))
-		dc.SetColor(randColor())
-		dc.Fill()
-	}
-
-	return dc
-}
-
 // 创建水印图
 func createWatermark(size int) *gg.Context {
 	dc := gg.NewContext(size, size)
 
-	dc.DrawCircle(float64(size/2), float64(size/2), float64(size/2))
+	dc.DrawEllipse(float64(size/2), float64(size/3), float64(size/2), float64(size/2))
 	dc.SetRGB(255, 255, 255)
-	dc.SetColor(color.White)
+	dc.SetColor(color.Black)
 	dc.Fill()
 
 	return dc

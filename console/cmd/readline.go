@@ -7,16 +7,19 @@ import (
 )
 
 func init() {
-	appendCommand(&cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "tool:readline",
 		Short: "文件读取",
 		Run:   runReadline,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
-	})
+	}
+	cmd.Flags().String("path", "./readme.md", "path")
+	appendCommand(cmd)
 }
 
-func runReadline(_ *cobra.Command, _ []string) {
-	lineopt.ReadLine("./readme.md", func(item string) {
+func runReadline(cmd *cobra.Command, _ []string) {
+	filePath, _ := cmd.Flags().GetString("path")
+	lineopt.ReadLine(filePath, func(item string) {
 		fmt.Println(item)
 	})
 }

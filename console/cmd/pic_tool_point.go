@@ -13,7 +13,7 @@ import (
 
 func init() {
 	appendCommand(&cobra.Command{
-		Use:   "tool:pic2",
+		Use:   "tool:pic:point",
 		Short: "点图生成",
 		Run:   runPicTool2,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
