@@ -24,6 +24,7 @@ func init() {
 	cmd.Flags().Int("h", 512, "height -h=512")
 	cmd.Flags().Int("w", 256, "width -w=512")
 	cmd.Flags().String("o", "./storage/pic/", "output -o=./storage/pic")
+	cmd.Flags().Int("n", 10, "number -n=10")
 	appendCommand(cmd)
 }
 
@@ -32,6 +33,7 @@ func runPicTool(cmd *cobra.Command, _ []string) {
 	h, _ := cmd.Flags().GetInt("h")
 	w, _ := cmd.Flags().GetInt("w")
 	o, _ := cmd.Flags().GetString("o")
+	n, _ := cmd.Flags().GetInt("n")
 
 	var S = h
 	var S2 = w
@@ -57,7 +59,7 @@ func runPicTool(cmd *cobra.Command, _ []string) {
 		(y)/2,
 	)
 
-	for i := 1; i <= 100; i++ {
+	for i := 1; i <= n; i++ {
 		dc = gg.NewContext(x, y)
 		dc.DrawImage(water, waterPosition.X-32, waterPosition.Y-32)
 		dc.SetColor(randColor())
