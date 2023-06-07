@@ -95,9 +95,14 @@ func ScanPathBuildList(dirName string) []PNode {
 			continue
 		}
 		if file.IsDir() {
+			// 如果子目录没有可以生成目录的文件，那么直接跳过
+			subNode := ScanPathBuildList(dirName + string(os.PathSeparator) + file.Name())
+			if len(subNode) == 0 {
+				continue
+			}
 			t.Type = 1
 			t.Name = file.Name()
-			t.Children = ScanPathBuildList(dirName + string(os.PathSeparator) + file.Name())
+			t.Children = subNode
 		} else {
 			if !strings.Contains(strings.ToLower(file.Name()), ".md") {
 				continue
