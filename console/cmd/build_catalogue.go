@@ -109,30 +109,3 @@ func ScanPathBuildList(dirName string) []PNode {
 	}
 	return node
 }
-func ScanDir(dirName string) []string {
-	files, err := os.ReadDir(dirName)
-	if err != nil {
-		log.Println(err)
-	}
-	var fileList []string
-	for _, file := range files {
-		fileList = append(fileList, dirName+string(os.PathSeparator)+file.Name())
-	}
-	return fileList
-}
-
-// ScanDirs 递归扫描目录
-func ScanDirs(dirName string) []string {
-	files, err := os.ReadDir(dirName)
-	if err != nil {
-		log.Println(err)
-	}
-	var fileList []string
-	for _, file := range files {
-		fileList = append(fileList, dirName+string(os.PathSeparator)+file.Name())
-		if file.IsDir() {
-			fileList = append(fileList, ScanDir(dirName+string(os.PathSeparator)+file.Name())...)
-		}
-	}
-	return fileList
-}
