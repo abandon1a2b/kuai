@@ -12,10 +12,6 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
-github.com/leancodebox/goose v0.0.1 h1:UXMo6g0g3YNsRbdZgjv67Cbf+2NF5IEENgsvweFaEDc=
-github.com/leancodebox/goose v0.0.1/go.mod h1:jEhzyx05ZNeKCPMww9Jm8ME7V3srVvWdi2hmLvdqteg=
-github.com/leancodebox/goose v0.0.3 h1:8hnz4DHyrjubPB3OoPHO8RbO3Vpskziwit61a1jEk04=
-github.com/leancodebox/goose v0.0.3/go.mod h1:jEhzyx05ZNeKCPMww9Jm8ME7V3srVvWdi2hmLvdqteg=
 github.com/leancodebox/goose v0.0.4 h1:978LQSNhKYSHCNAHjjGqb82P8UANZvDlx+m+hoaGOLw=
 github.com/leancodebox/goose v0.0.4/go.mod h1:jEhzyx05ZNeKCPMww9Jm8ME7V3srVvWdi2hmLvdqteg=
 github.com/rogpeppe/go-internal v1.6.1 h1:/FiVV8dS/e+YqF2JvO3yXRFbBLTIuSDkuC7aBOAvL+k=
