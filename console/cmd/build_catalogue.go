@@ -3,7 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"kuai/util"
+	"github.com/eatmeatball/kuai/util"
 	"log"
 	"os"
 	"strings"

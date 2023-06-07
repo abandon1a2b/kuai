@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/eatmeatball/kuai/util"
 	"github.com/spf13/cobra"
-	"kuai/util"
 	"os"
 	"os/exec"
 	"path/filepath"

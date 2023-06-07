@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/eatmeatball/kuai/util"
 	"github.com/leancodebox/goose/fileopt"
 	"image"
 	"image/color"
-	"kuai/util"
 	"math/rand"
 	"time"
 

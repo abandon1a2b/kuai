@@ -1,8 +1,8 @@
 package console
 
 import (
+	"github.com/eatmeatball/kuai/console/cmd"
 	"github.com/spf13/cobra"
-	"kuai/console/cmd"
 )
 
 // rootCmd represents the base command when called without any subcommands

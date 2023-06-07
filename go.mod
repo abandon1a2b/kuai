@@ -1,4 +1,4 @@
-module kuai
+module github.com/eatmeatball/kuai
 
 go 1.20
 
