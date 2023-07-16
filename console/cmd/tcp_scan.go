@@ -22,8 +22,8 @@ func init() {
 	appendCommand(cmd)
 }
 func runTcpScan(cmd *cobra.Command, _ []string) {
-	target, _ := cmd.Flags().GetString("ip1") // 目标主机地址
-	timeout := 5                              // 超时时间（秒）
+	target, _ := cmd.Flags().GetString("ip") // 目标主机地址
+	timeout := 5                             // 超时时间（秒）
 	for port := 1; port <= 65535; port++ {
 		addr := fmt.Sprintf("%s:%d", target, port)
 		conn, err := net.DialTimeout("tcp", addr, time.Duration(timeout)*time.Second)
