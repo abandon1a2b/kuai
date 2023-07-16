@@ -33,7 +33,6 @@ func runTcpScan(cmd *cobra.Command, _ []string) {
 			addr := fmt.Sprintf("%s:%d", target, port)
 			conn, err := net.DialTimeout("tcp", addr, time.Duration(timeout)*time.Second)
 			if err != nil { // 端口不可访问
-				wg.Done()
 				return
 			}
 
