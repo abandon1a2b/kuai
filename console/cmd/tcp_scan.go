@@ -24,14 +24,26 @@ func init() {
 func runTcpScan(cmd *cobra.Command, _ []string) {
 	target, _ := cmd.Flags().GetString("ip") // 目标主机地址
 	timeout := 5                             // 超时时间（秒）
+
+	var wg sync.WaitGroup
 	for port := 1; port <= 65535; port++ {
-		addr := fmt.Sprintf("%s:%d", target, port)
-		conn, err := net.DialTimeout("tcp", addr, time.Duration(timeout)*time.Second)
-		if err == nil {
-			conn.Close()
-			fmt.Printf("port %d is open\n", port)
-		}
+		wg.Add(1)
+		go func(ip, port any) {
+			defer wg.Done()
+			addr := fmt.Sprintf("%s:%d", target, port)
+			conn, err := net.DialTimeout("tcp", addr, time.Duration(timeout)*time.Second)
+			if err != nil { // 端口不可访问
+				wg.Done()
+				return
+			}
+
+			defer conn.Close()
+			fmt.Printf("%s:%d is open\n", ip, port)
+		}(target, port)
 	}
+
+	wg.Wait()
+	fmt.Println("Scan completed")
 }
 
 func init() {
