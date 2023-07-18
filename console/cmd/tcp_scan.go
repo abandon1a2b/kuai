@@ -19,14 +19,18 @@ func init() {
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}
 	cmd.Flags().String("ip", "127.0.0.1", "IP address")
+	cmd.Flags().Int("port1", 1, "")
+	cmd.Flags().Int("port2", 65535, "")
 	appendCommand(cmd)
 }
 func runTcpScan(cmd *cobra.Command, _ []string) {
 	target, _ := cmd.Flags().GetString("ip") // 目标主机地址
+	port1, _ := cmd.Flags().GetInt("port1")  // 目标主机地址
+	port2, _ := cmd.Flags().GetInt("port1")  // 目标主机地址
 	timeout := 5                             // 超时时间（秒）
 
 	var wg sync.WaitGroup
-	for port := 1; port <= 65535; port++ {
+	for port := port1; port <= port2; port++ {
 		wg.Add(1)
 		go func(ip, port any) {
 			defer wg.Done()
