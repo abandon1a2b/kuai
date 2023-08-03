@@ -26,14 +26,21 @@ func init() {
 func runTcpScan(cmd *cobra.Command, _ []string) {
 	target, _ := cmd.Flags().GetString("ip") // 目标主机地址
 	port1, _ := cmd.Flags().GetInt("port1")  // 目标主机地址
-	port2, _ := cmd.Flags().GetInt("port1")  // 目标主机地址
+	port2, _ := cmd.Flags().GetInt("port2")  // 目标主机地址
 	timeout := 5                             // 超时时间（秒）
 
 	var wg sync.WaitGroup
+	maxConcurrency := 100 // 最大并发数限制，可根据需要调整
+	// 创建信号量，用于控制并发数量
+	semaphore := make(chan struct{}, maxConcurrency)
 	for port := port1; port <= port2; port++ {
 		wg.Add(1)
+		semaphore <- struct{}{} // 获取一个信号量，代表一个 Goroutine 占用一个并发槽位
 		go func(ip, port any) {
-			defer wg.Done()
+			defer func() {
+				<-semaphore // 释放信号量，代表一个 Goroutine 释放一个并发槽位
+				wg.Done()
+			}()
 			addr := fmt.Sprintf("%s:%d", target, port)
 			conn, err := net.DialTimeout("tcp", addr, time.Duration(timeout)*time.Second)
 			if err != nil { // 端口不可访问
@@ -99,6 +106,10 @@ func scanIPRange(startIP, endIP string, ports []int) {
 	}
 
 	var wg sync.WaitGroup
+	maxConcurrency := 100 // 最大并发数限制，可根据需要调整
+
+	// 创建信号量，用于控制并发数量
+	semaphore := make(chan struct{}, maxConcurrency)
 
 	// 遍历 IP 段中的所有 IP 地址，依次进行端口扫描
 	for i := startInt; i <= endInt; i++ {
@@ -108,18 +119,19 @@ func scanIPRange(startIP, endIP string, ports []int) {
 
 		// 对指定 IP 地址上的所有端口依次进行扫描
 		for _, port := range ports {
+			semaphore <- struct{}{} // 获取一个信号量，代表一个 Goroutine 占用一个并发槽位
 			go func(ip string, port int) {
+				defer func() {
+					<-semaphore // 释放信号量，代表一个 Goroutine 释放一个并发槽位
+					wg.Done()
+				}()
 				target := fmt.Sprintf("%s:%d", ip, port)
 				conn, err := net.DialTimeout("tcp", target, 200*time.Millisecond)
 				if err != nil { // 端口不可访问
-					wg.Done()
 					return
 				}
-
 				defer conn.Close()
-
 				fmt.Printf("%s:%d is open\n", ip, port)
-				wg.Done()
 			}(ip, port)
 		}
 	}
