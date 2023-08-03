@@ -59,7 +59,7 @@ func runTcpScan(cmd *cobra.Command, _ []string) {
 func init() {
 	cmd := &cobra.Command{
 		Use:   "tcp_scan_list",
-		Short: "tcp_scan_list --ip1=10.249.1.1 --ip2=10.249.255.255 --port=22,80",
+		Short: "tcp_scan_list --ip1=10.249.1.1 --ip2=10.249.255.255 --port=80,81",
 		Run:   runTcpScan2,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}
