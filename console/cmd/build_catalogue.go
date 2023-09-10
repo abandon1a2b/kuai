@@ -19,16 +19,27 @@ func init() {
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}
 	cmd.Flags().String("path", "./", "dir path")
+	cmd.Flags().String("output", "", "output")
 	appendCommand(cmd)
 }
 
 func runBuildCatalogue(cmd *cobra.Command, args []string) {
 	path, _ := cmd.Flags().GetString("path") // 指定根目录
 	path, _ = util.AbsPath(path)
+	output, _ := cmd.Flags().GetString("output") // 指定根目录
 
 	list := ScanPathBuildList(path)
 	bgd(list, ".", 0)
-	fmt.Println(listBuffer.String())
+	if output != "" {
+		err := os.WriteFile(output, listBuffer.Bytes(), 0644)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println(fmt.Sprintf("output %s success\n", output))
+		}
+	} else {
+		fmt.Println(listBuffer.String())
+	}
 }
 
 var listBuffer = bytes.Buffer{}
