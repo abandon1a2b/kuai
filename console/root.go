@@ -1,7 +1,7 @@
 package console
 
 import (
-	"github.com/eatmeatball/kuai/console/cmd"
+	"github.com/abandon1a2b/kuai/console/cmd"
 	"github.com/spf13/cobra"
 )
 

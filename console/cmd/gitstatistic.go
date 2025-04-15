@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/eatmeatball/kuai/util"
+	"github.com/abandon1a2b/kuai/util"
 	"os"
 	"os/exec"
 	"path/filepath"
