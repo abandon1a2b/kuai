@@ -3,10 +3,13 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/abandon1a2b/kuai/util"
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
+
+	"github.com/abandon1a2b/kuai/util"
 
 	"github.com/spf13/cobra"
 )
@@ -20,6 +23,7 @@ func init() {
 	}
 	cmd.Flags().String("path", "./", "dir path")
 	cmd.Flags().String("output", "", "output")
+	cmd.Flags().Bool("git-time", false, "append git time")
 	appendCommand(cmd)
 }
 
@@ -27,9 +31,10 @@ func runBuildCatalogue(cmd *cobra.Command, args []string) {
 	path, _ := cmd.Flags().GetString("path") // 指定根目录
 	path, _ = util.AbsPath(path)
 	output, _ := cmd.Flags().GetString("output") // 指定根目录
+	withGitTime, _ := cmd.Flags().GetBool("git-time")
 
 	list := ScanPathBuildList(path)
-	bgd(list, ".", 0)
+	bgd(list, ".", 0, path, withGitTime)
 	if output != "" {
 		err := os.WriteFile(output, listBuffer.Bytes(), 0644)
 		if err != nil {
@@ -44,7 +49,7 @@ func runBuildCatalogue(cmd *cobra.Command, args []string) {
 
 var listBuffer = bytes.Buffer{}
 
-func bgd(list []PNode, prefix string, deep int) {
+func bgd(list []PNode, prefix string, deep int, rootPath string, withGitTime bool) {
 	for _, node := range list {
 		listBuffer.WriteString("\n")
 		if deep != 0 {
@@ -56,11 +61,30 @@ func bgd(list []PNode, prefix string, deep int) {
 		itemName := StrReplaces(rList, "_", node.Name)
 		pathName := StrReplaces(rList, "%20", prefix+string(os.PathSeparator)+node.Name)
 
+		if withGitTime {
+			absPath := filepath.Join(rootPath, pathName)
+			t := getGitTime(absPath)
+			if t != "" {
+				itemName = fmt.Sprintf("%s %s", itemName, t)
+			}
+		}
+
 		listBuffer.WriteString(fmt.Sprintf("- [%v](%v)", itemName, pathName))
 		if node.Type == 1 {
-			bgd(node.Children, prefix+string(os.PathSeparator)+node.Name, deep+1)
+			bgd(node.Children, prefix+string(os.PathSeparator)+node.Name, deep+1, rootPath, withGitTime)
 		}
 	}
+}
+
+func getGitTime(path string) string {
+	cmd := exec.Command("git", "log", "-1", "--format=%cd", "--date=format:%Y-%m-%d %H:%M:%S", path)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(out.String())
 }
 
 // StrReplaces 多字段替换
