@@ -10,7 +10,7 @@ import (
 func init() {
 	appendCommand(&cobra.Command{
 		Use:   "tool:gcm",
-		Short: "demo gcm",
+		Short: "生成 Git Commit 时间映射命令 (将今天的时间映射到昨天)",
 		Run:   runGcm,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	})

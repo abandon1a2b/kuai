@@ -2,17 +2,18 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/abandon1a2b/kuai/util"
-	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/abandon1a2b/kuai/util"
+	"github.com/spf13/cobra"
 )
 
 func init() {
 	cmd := &cobra.Command{
 		Use:   "git:scanRepo",
-		Short: "git 指定目录下全项目拉取 git:scanRepo --path=./",
+		Short: "扫描指定目录下的所有 Git 项目并查看 remote",
 		Run:   runGitScanRepo,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}
@@ -23,21 +24,11 @@ func init() {
 func runGitScanRepo(cmd *cobra.Command, _ []string) {
 	root, _ := cmd.Flags().GetString("path") // 指定根目录
 	root, _ = util.AbsPath(root)
-	// 定义一个匿名函数，用于处理每个目录
-	var visitDirFunc = func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if f.IsDir() && path != root {
-			fmt.Println("Subdirectory found:", path)
-			gitRepo(path)
-			return filepath.SkipDir // 只遍历当前目录下的子目录，不递归遍历子目录下的子目录
-		}
-		return nil
-	}
 
-	// 递归遍历指定目录下的所有文件和子目录
-	err := filepath.Walk(root, visitDirFunc)
+	err := util.WalkGitRepos(root, 10, func(path string) {
+		gitRepo(path)
+	})
+
 	if err != nil {
 		fmt.Printf("Error walking the path %q: %v\n", root, err)
 		return

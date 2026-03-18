@@ -2,19 +2,20 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/leancodebox/goose/array"
-	"github.com/spf13/cast"
-	"github.com/spf13/cobra"
 	"net"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/leancodebox/goose/array"
+	"github.com/spf13/cast"
+	"github.com/spf13/cobra"
 )
 
 func init() {
 	cmd := &cobra.Command{
 		Use:   "tcp_scan",
-		Short: "tcp_scan --ip=127.0.0.1 --port1=80 --port2=81",
+		Short: "TCP 端口扫描工具",
 		Run:   runTcpScan,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}
@@ -36,20 +37,20 @@ func runTcpScan(cmd *cobra.Command, _ []string) {
 	for port := port1; port <= port2; port++ {
 		wg.Add(1)
 		semaphore <- struct{}{} // 获取一个信号量，代表一个 Goroutine 占用一个并发槽位
-		go func(ip, port any) {
+		go func(p int) {
 			defer func() {
 				<-semaphore // 释放信号量，代表一个 Goroutine 释放一个并发槽位
 				wg.Done()
 			}()
-			addr := fmt.Sprintf("%s:%d", target, port)
+			addr := fmt.Sprintf("%s:%d", target, p)
 			conn, err := net.DialTimeout("tcp", addr, time.Duration(timeout)*time.Second)
 			if err != nil { // 端口不可访问
 				return
 			}
 
 			defer conn.Close()
-			fmt.Printf("%s:%d is open\n", ip, port)
-		}(target, port)
+			fmt.Printf("%s:%d is open\n", target, p)
+		}(port)
 	}
 
 	wg.Wait()
@@ -59,7 +60,7 @@ func runTcpScan(cmd *cobra.Command, _ []string) {
 func init() {
 	cmd := &cobra.Command{
 		Use:   "tcp_scan_list",
-		Short: "tcp_scan_list --ip1=10.249.1.1 --ip2=10.249.255.255 --port=80,81",
+		Short: "TCP IP段端口扫描工具",
 		Run:   runTcpScan2,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}

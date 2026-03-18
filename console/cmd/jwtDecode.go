@@ -14,7 +14,7 @@ import (
 func init() {
 	appendCommand(&cobra.Command{
 		Use:   "tool:jwtDecode",
-		Short: "jwt 解析",
+		Short: "JWT Token 解析工具",
 		Long:  "kuai jwtDecode",
 		Run:   runJwtDecode,
 		Args:  cobra.ExactArgs(0), // 只允许且必须传 1 个参数

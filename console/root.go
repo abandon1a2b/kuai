@@ -8,8 +8,8 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "kuai",
-	Short: "kkkkk",
-	Long:  `kuai kuai kuai kuai kuai`,
+	Short: "Kuai 命令行工具箱",
+	Long:  `Kuai 命令行工具箱 - 提供各种便捷的开发者工具`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 	},
 	// Run: runWeb,

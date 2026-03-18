@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/abandon1a2b/kuai/util"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/abandon1a2b/kuai/util"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +16,7 @@ import (
 func init() {
 	cmd := &cobra.Command{
 		Use:   "git:statistic",
-		Short: "git 提交记录统计 git:statistic --path=./ --user=username",
+		Short: "统计指定目录下所有 Git 项目的提交记录",
 		Run:   runGitstatistic,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}
@@ -33,49 +33,39 @@ func runGitstatistic(cmd *cobra.Command, _ []string) {
 	root, _ := cmd.Flags().GetString("path")       // 指定根目录
 	authorName, _ := cmd.Flags().GetString("user") // 指定根目录
 	root, _ = util.AbsPath(root)
-	// 遍历指定目录下的所有 Git 项目
-	err := filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
+
+	var mu sync.Mutex
+	err := util.WalkGitRepos(root, 10, func(projectPath string) {
+		// 调用 Git 命令获取作者的提交次数和新增代码行数
+		commitCount, addedLines, err := getAuthorCommitData(projectPath, authorName, lastYear)
 		if err != nil {
-			return err
+			mu.Lock()
+			fmt.Printf("Failed to get Git data for %s: %v\n", projectPath, err)
+			mu.Unlock()
+			return
 		}
 
-		if f.IsDir() && path != root {
-			func(path string) {
-				// 如果当前路径是一个目录，并且不是根目录，则遍历该目录来查找 Git 项目
-				_, gitErr := os.Stat(filepath.Join(path, ".git"))
-				if gitErr == nil || !os.IsNotExist(gitErr) {
-					// 如果该目录下存在 .git 目录，则说明该目录是一个 Git 项目的根目录
-					projectPath := path
-					fmt.Println("Git project found:", projectPath)
-
-					// 调用 Git 命令获取作者的提交次数和新增代码行数
-					commitCount, addedLines, err := getAuthorCommitData(projectPath, authorName, lastYear)
-					if err != nil {
-						fmt.Printf("Failed to get Git data: %v\n", err)
-						return
-					}
-					fmt.Printf("Commit count: %d\n", commitCount)
-					fmt.Printf("Added lines: %d\n", addedLines)
-
-					// 统计作者在早上、下午和晚上提交的次数
-					morningCount, afternoonCount, eveningCount, err := getAuthorCommitTimeData(projectPath, authorName, lastYear)
-					if err != nil {
-						fmt.Printf("Failed to get Git data: %v\n", err)
-						return
-					}
-					totalCount := morningCount + afternoonCount + eveningCount
-					if totalCount > 0 {
-						fmt.Printf("Morning commits: %d %.2f%%\n", morningCount, float64(morningCount)*100.0/float64(totalCount))
-						fmt.Printf("Afternoon commits: %d %.2f%%\n", afternoonCount, float64(afternoonCount)*100.0/float64(totalCount))
-						fmt.Printf("Evening commits: %d %.2f%%\n", eveningCount, float64(eveningCount)*100.0/float64(totalCount))
-					}
-				}
-			}(path)
-
-			return filepath.SkipDir // 只遍历当前目录下的子目录，不递归遍历子目录下的子目录
+		// 统计作者在早上、下午和晚上提交的次数
+		morningCount, afternoonCount, eveningCount, err := getAuthorCommitTimeData(projectPath, authorName, lastYear)
+		if err != nil {
+			mu.Lock()
+			fmt.Printf("Failed to get Git time data for %s: %v\n", projectPath, err)
+			mu.Unlock()
+			return
 		}
 
-		return nil
+		mu.Lock()
+		defer mu.Unlock()
+		fmt.Println("-------------------------------------------------")
+		fmt.Println("Git project found:", projectPath)
+		fmt.Printf("Commit count: %d\n", commitCount)
+		fmt.Printf("Added lines: %d\n", addedLines)
+		totalCount := morningCount + afternoonCount + eveningCount
+		if totalCount > 0 {
+			fmt.Printf("Morning commits: %d %.2f%%\n", morningCount, float64(morningCount)*100.0/float64(totalCount))
+			fmt.Printf("Afternoon commits: %d %.2f%%\n", afternoonCount, float64(afternoonCount)*100.0/float64(totalCount))
+			fmt.Printf("Evening commits: %d %.2f%%\n", eveningCount, float64(eveningCount)*100.0/float64(totalCount))
+		}
 	})
 	if err != nil {
 		fmt.Printf("Error walking the path %q: %v\n", root, err)

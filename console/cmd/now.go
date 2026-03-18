@@ -9,7 +9,7 @@ import (
 func init() {
 	cmd := &cobra.Command{
 		Use:   "now",
-		Short: "文件读取",
+		Short: "获取当前格式化时间",
 		Run:   getNow,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}
