@@ -9,3 +9,4 @@ thh
 *.exe
 .DS_Store
 kuai
+.claude/settings.local.json
