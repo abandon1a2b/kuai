@@ -3,8 +3,10 @@ package cmd
 import (
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/samber/lo"
@@ -17,44 +19,87 @@ func init() {
 		Use:   "net:scan",
 		Short: "TCP 端口扫描工具",
 		Run:   runTcpScan,
-		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
 	}
 	cmd.Flags().String("ip", "127.0.0.1", "IP address")
-	cmd.Flags().Int("port1", 1, "")
-	cmd.Flags().Int("port2", 65535, "")
+	cmd.Flags().Int("port1", 1, "start port")
+	cmd.Flags().Int("port2", 65535, "end port")
+	cmd.Flags().Int("timeout", 2000, "timeout in milliseconds")
 	appendCommand(cmd)
 }
+
 func runTcpScan(cmd *cobra.Command, _ []string) {
-	target, _ := cmd.Flags().GetString("ip") // 目标主机地址
-	port1, _ := cmd.Flags().GetInt("port1")  // 目标主机地址
-	port2, _ := cmd.Flags().GetInt("port2")  // 目标主机地址
-	timeout := 5                             // 超时时间（秒）
+	target, _ := cmd.Flags().GetString("ip")
+	port1, _ := cmd.Flags().GetInt("port1")
+	port2, _ := cmd.Flags().GetInt("port2")
+	timeout, _ := cmd.Flags().GetInt("timeout") // 毫秒超时
+
+	ports := make([]int, 0, port2-port1+1)
+	for p := port1; p <= port2; p++ {
+		ports = append(ports, p)
+	}
+	total := len(ports)
+
+	// 收集开放端口
+	var openPorts []int
+	var mu sync.Mutex
 
 	var wg sync.WaitGroup
-	maxConcurrency := 100 // 最大并发数限制，可根据需要调整
-	// 创建信号量，用于控制并发数量
+	var scanned int64
+	maxConcurrency := 1000
+
 	semaphore := make(chan struct{}, maxConcurrency)
-	for port := port1; port <= port2; port++ {
+
+	// 进度显示使用 stderr
+	go func() {
+		for {
+			done := atomic.LoadInt64(&scanned)
+			percent := float64(done) / float64(total) * 100
+			fmt.Fprintf(os.Stderr, "\r[%d/%d] %.1f%%", done, total, percent)
+			if done >= int64(total) {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
+
+	start := time.Now()
+	for _, port := range ports {
 		wg.Add(1)
-		semaphore <- struct{}{} // 获取一个信号量，代表一个 Goroutine 占用一个并发槽位
+		semaphore <- struct{}{}
 		go func(p int) {
 			defer func() {
-				<-semaphore // 释放信号量，代表一个 Goroutine 释放一个并发槽位
+				<-semaphore
 				wg.Done()
+				atomic.AddInt64(&scanned, 1)
 			}()
 			addr := fmt.Sprintf("%s:%d", target, p)
-			conn, err := net.DialTimeout("tcp", addr, time.Duration(timeout)*time.Second)
-			if err != nil { // 端口不可访问
+			conn, err := net.DialTimeout("tcp", addr, time.Duration(timeout)*time.Millisecond)
+			if err != nil {
 				return
 			}
-
 			defer conn.Close()
+			// 结果输出到 stdout
 			fmt.Printf("%s:%d is open\n", target, p)
+			// 收集到汇总
+			mu.Lock()
+			openPorts = append(openPorts, p)
+			mu.Unlock()
 		}(port)
 	}
 
 	wg.Wait()
-	fmt.Println("Scan completed")
+	elapsed := time.Since(start)
+	fmt.Fprintf(os.Stderr, "\r[%d/%d] 100.0%%\n", total, total)
+
+	// 打印汇总
+	fmt.Printf("\n=== 扫描汇总 ===\n")
+	fmt.Printf("目标: %s\n", target)
+	fmt.Printf("端口范围: %d - %d\n", port1, port2)
+	fmt.Printf("开放端口数: %d/%d\n", len(openPorts), total)
+	if len(openPorts) > 0 {
+		fmt.Printf("开放端口: %v\n", openPorts)
+	}
+	fmt.Printf("耗时: %v\n", elapsed)
 }
 
 func init() {
@@ -76,17 +121,14 @@ func runTcpScan2(cmd *cobra.Command, _ []string) {
 	endIP, _ := cmd.Flags().GetString("ip2")
 	portListStr, _ := cmd.Flags().GetString("port")
 
-	//startIP = "10.249.1.1"
-	//endIP = "10.249.255.255"
 	port := lo.Map(strings.Split(portListStr, ","), func(t string, _ int) int {
 		return cast.ToInt(t)
 	})
 
-	//port := []int{ /*22, 80,*/ 8081, 8080}
 	scanIPRange(startIP, endIP, port)
 
 	elapsed := time.Since(start)
-	fmt.Printf("\nScan completed in %v\n", elapsed)
+	fmt.Printf("Scan completed in %v\n", elapsed)
 }
 
 func scanIPRange(startIP, endIP string, ports []int) {
@@ -106,11 +148,27 @@ func scanIPRange(startIP, endIP string, ports []int) {
 		return
 	}
 
-	var wg sync.WaitGroup
-	maxConcurrency := 100 // 最大并发数限制，可根据需要调整
+	totalIPs := int(endInt - startInt + 1)
+	total := totalIPs * len(ports)
 
-	// 创建信号量，用于控制并发数量
+	var wg sync.WaitGroup
+	var scanned int64
+	maxConcurrency := 1000
+
 	semaphore := make(chan struct{}, maxConcurrency)
+
+	// 进度显示
+	go func() {
+		for {
+			done := atomic.LoadInt64(&scanned)
+			percent := float64(done) / float64(total) * 100
+			fmt.Fprintf(os.Stderr, "\r[%d/%d] %.1f%%", done, total, percent)
+			if done >= int64(total) {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
 
 	// 遍历 IP 段中的所有 IP 地址，依次进行端口扫描
 	for i := startInt; i <= endInt; i++ {
@@ -120,15 +178,16 @@ func scanIPRange(startIP, endIP string, ports []int) {
 
 		// 对指定 IP 地址上的所有端口依次进行扫描
 		for _, port := range ports {
-			semaphore <- struct{}{} // 获取一个信号量，代表一个 Goroutine 占用一个并发槽位
+			semaphore <- struct{}{}
 			go func(ip string, port int) {
 				defer func() {
-					<-semaphore // 释放信号量，代表一个 Goroutine 释放一个并发槽位
+					<-semaphore
 					wg.Done()
+					atomic.AddInt64(&scanned, 1)
 				}()
 				target := fmt.Sprintf("%s:%d", ip, port)
 				conn, err := net.DialTimeout("tcp", target, 200*time.Millisecond)
-				if err != nil { // 端口不可访问
+				if err != nil {
 					return
 				}
 				defer conn.Close()
@@ -138,8 +197,8 @@ func scanIPRange(startIP, endIP string, ports []int) {
 	}
 
 	wg.Wait()
-
-	fmt.Println("\nScan completed")
+	fmt.Fprintf(os.Stderr, "\r[%d/%d] 100.0%%\n", total, total)
+	fmt.Println("Scan completed")
 }
 
 func ipToInt(ip net.IP) int64 {
