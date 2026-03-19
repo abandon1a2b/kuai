@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/leancodebox/goose/array"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 )
@@ -78,9 +78,9 @@ func runTcpScan2(cmd *cobra.Command, _ []string) {
 
 	//startIP = "10.249.1.1"
 	//endIP = "10.249.255.255"
-	port := array.ArrayMap(func(t string) int {
+	port := lo.Map(strings.Split(portListStr, ","), func(t string, _ int) int {
 		return cast.ToInt(t)
-	}, strings.Split(portListStr, ","))
+	})
 
 	//port := []int{ /*22, 80,*/ 8081, 8080}
 	scanIPRange(startIP, endIP, port)
