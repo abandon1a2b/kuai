@@ -15,7 +15,7 @@ import (
 
 func init() {
 	cmd := &cobra.Command{
-		Use:   "git:statistic",
+		Use:   "git:stats",
 		Short: "统计指定目录下所有 Git 项目的提交记录",
 		Run:   runGitstatistic,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数

@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	appendCommand(&cobra.Command{Use: "tool:mdt", Short: "生成未来 30 天带星期的 Markdown 待办列表", Run: makeDayTodo})
+	appendCommand(&cobra.Command{Use: "todo:gen", Short: "生成未来 30 天带星期的 Markdown 待办列表", Run: makeDayTodo})
 }
 func makeDayTodo(_ *cobra.Command, _ []string) {
 	now := time.Now().Unix()

@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/leancodebox/goose/lineopt"
 	"github.com/spf13/cobra"
 )
 
 func init() {
 	cmd := &cobra.Command{
-		Use:   "tool:readline",
+		Use:   "file:read",
 		Short: "逐行读取并打印文件内容",
 		Run:   runReadline,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数

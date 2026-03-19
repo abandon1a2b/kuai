@@ -3,16 +3,17 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/spf13/cobra"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 func init() {
 	cmd := &cobra.Command{
-		Use:   "git:newTag",
+		Use:   "git:new-tag",
 		Short: "基于当前最新的 Git Tag 自动生成下一个补丁版本 Tag",
 		Run:   runGitnewTag,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数

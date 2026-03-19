@@ -12,7 +12,7 @@ import (
 
 func init() {
 	cmd := &cobra.Command{
-		Use:   "git:scanRepo",
+		Use:   "git:scan-repos",
 		Short: "扫描指定目录下的所有 Git 项目并查看 remote",
 		Run:   runGitScanRepo,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数

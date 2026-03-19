@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"time"
+
+	"github.com/spf13/cobra"
 )
 
 func init() {
 	cmd := &cobra.Command{
-		Use:   "now",
+		Use:   "time:now",
 		Short: "获取当前格式化时间",
 		Run:   getNow,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数

@@ -16,7 +16,7 @@ import (
 
 func init() {
 	cmd := &cobra.Command{
-		Use:   "tool:build_catalogue",
+		Use:   "file:tree",
 		Short: "生成 Markdown 格式的文件目录树",
 		Run:   runBuildCatalogue,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数

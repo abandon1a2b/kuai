@@ -14,7 +14,7 @@ import (
 
 func init() {
 	cmd := &cobra.Command{
-		Use:   "tcp_scan",
+		Use:   "net:scan",
 		Short: "TCP 端口扫描工具",
 		Run:   runTcpScan,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
@@ -59,7 +59,7 @@ func runTcpScan(cmd *cobra.Command, _ []string) {
 
 func init() {
 	cmd := &cobra.Command{
-		Use:   "tcp_scan_list",
+		Use:   "net:scan-range",
 		Short: "TCP IP段端口扫描工具",
 		Run:   runTcpScan2,
 		// Args:  cobra.ExactArgs(1), // 只允许且必须传 1 个参数
