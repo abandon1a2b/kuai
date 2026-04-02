@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/abandon1a2b/kuai/util"
 	"github.com/spf13/cobra"
@@ -22,6 +23,9 @@ func init() {
 }
 
 func runAllprojectpull(cmd *cobra.Command, _ []string) {
+	start := time.Now()
+	fmt.Printf("Start time: %s\n", start.Format("2006-01-02 15:04:05"))
+
 	root, _ := cmd.Flags().GetString("path") // 指定根目录
 	root, _ = util.AbsPath(root)
 
@@ -33,6 +37,10 @@ func runAllprojectpull(cmd *cobra.Command, _ []string) {
 		fmt.Printf("Error walking the path %q: %v\n", root, err)
 		return
 	}
+
+	end := time.Now()
+	fmt.Printf("End time: %s\n", end.Format("2006-01-02 15:04:05"))
+	fmt.Printf("Total elapsed time: %v\n", end.Sub(start))
 }
 
 func gitPull(path string) {
